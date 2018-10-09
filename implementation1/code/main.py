@@ -14,18 +14,24 @@ def load_data(filename):
     tmp = np.insert(tmp, 2, values='day', axis=1)
     tmp = np.insert(tmp, 2, values='month', axis=1)
     for i in range(len(tmp)):
-        tmp[i][2], tmp[i][3], tmp[i][4] = split_date(tmp[i][1])
+        date = tmp[i][1].split('/')
+        tmp[i][2], tmp[i][3], tmp[i][4] = date[0], date[1], date[2]
+        #   process the year of renovated
+        if tmp[i][17] == '0':
+            tmp[i][17] = tmp[i][16]
+        #   process the zip code
+        if tmp[i][18][:3] == '981':
+            tmp[i][18] = 1
+        elif tmp[i][18][:3] == '980':
+            tmp[i][18] = 0
+        else:
+            tmp[i][18] = -1
     tmp = np.delete(tmp, 1, axis=1)
 
     #   string to int or float
     tmp = tmp.astype(float)
 
     return tmp[:, :-1], tmp[:, -1]
-
-
-def split_date(date):
-    temp = date.split('/')
-    return temp[0], temp[1], temp[2]
 
 
 def report_statistics(data):
@@ -36,10 +42,25 @@ def report_statistics(data):
     # print(np.min(data, axis=0))
     # print(np.max(data, axis=0))
     # calculate the percentages of examples for category features
-    print(calculate_percentage(data[:, 9]))
-    print(calculate_percentage(data[:, 11]))
-    print(calculate_percentage(data[:, 12]))
+    print("waterfront %s" % calculate_percentage(data[:, 9]))     # waterfront
+    print("condition %s" % calculate_percentage(data[:, 11]))    # condition
+    print("grade %s" % calculate_percentage(data[:, 12]))    # grade
+    print("zip code %s" % calculate_percentage(data[:, 17]))    # zip code
 
+
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+       return v
+    return v / norm
+
+
+def normalize_all_columns(data):
+    if data is None or len(data) == 0:
+        return data
+    for i in range(len(data[0])):
+        data[:, i] = normalize(data[:, i])
+    return data
 
 def calculate_percentage(data):
     dic = {}
@@ -58,8 +79,10 @@ def calculate_percentage(data):
 
 if __name__ == '__main__':
     train_data, train_label = load_data('PA1_train.csv')
-    print(train_data)
+    print(train_data[0])
     print(train_label)
 
     report_statistics(train_data)
-    # report_statistics(train_label)
+
+    train_data = normalize_all_columns(train_data)
+    print(train_data[0])
