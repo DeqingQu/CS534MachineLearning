@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def load_data(filename):
+def load_data(filename, has_label=True):
     tmp = np.loadtxt('data/' + filename, dtype=np.str, delimiter=",")
     #   remove the title row
     tmp = np.delete(tmp, 0, axis=0)
@@ -31,7 +31,10 @@ def load_data(filename):
     #   string to int or float
     tmp = tmp.astype(float)
 
-    return tmp[:, :-1], tmp[:, -1]
+    if has_label:
+        return tmp[:, :-1], tmp[:, -1]
+    else:
+        return tmp
 
 
 def report_statistics(data):
@@ -61,6 +64,7 @@ def normalize_all_columns(data):
     for i in range(len(data[0])):
         data[:, i] = normalize(data[:, i])
     return data
+
 
 def calculate_percentage(data):
     dic = {}
