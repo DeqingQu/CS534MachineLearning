@@ -81,6 +81,42 @@ def calculate_percentage(data):
     return dic
 
 
+def gradient_descent(x, y, lr, lamda, iterations):
+    w = np.random.random((1, len(x[0])))[0]
+
+    for it in range(iterations):
+        det_w = np.zeros((1, len(x[0])))[0]
+        for i in range(len(x)):
+            yi = np.dot(w, x[i])
+            det_w += x[i] * (y[i] - yi)
+        #   regularization
+        det_w -= lamda * w
+        #   debug information
+        if it % 1000 == 0:
+            loss = calculate_loss(x, y, w, lamda)
+            print("it = %d, loss = %f" % (it, loss))
+            norm = np.linalg.norm(det_w)
+            print("norm = %f" % norm)
+        w += lr * det_w
+    return w
+
+
+def calculate_loss(x, y, w, lamda):
+    loss = 0
+    for i in range(len(x)):
+        yi = np.dot(w, x[i])
+        loss += (y[i] - yi)**2
+    loss += lamda * np.dot(w, w)
+    return loss
+
+
+def predict(x, w):
+    y = []
+    for i in range(len(x)):
+        y.append(np.dot(w, x[i]))
+    return y
+
+
 if __name__ == '__main__':
     train_data, train_label = load_data('PA1_train.csv')
     print(train_data[0])
@@ -89,4 +125,13 @@ if __name__ == '__main__':
     report_statistics(train_data)
 
     train_data = normalize_all_columns(train_data)
+
     print(train_data[0])
+
+    w = gradient_descent(train_data[:100], train_label, 0.1, 0, 10000)
+    print("weight = " + str(w))
+
+    y = predict(train_data[:10], w)
+    print("predict: " + str(y))
+
+    print("ground truth: " + str(train_label[:10]))
