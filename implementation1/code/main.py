@@ -81,23 +81,27 @@ def calculate_percentage(data):
     return dic
 
 
-def gradient_descent(x, y, lr, lamda, iterations):
+def gradient_descent(x, y, lr, lamda, iterations, batch_size):
     w = np.random.random((1, len(x[0])))[0]
 
-    for it in range(iterations):
-        det_w = np.zeros((1, len(x[0])))[0]
-        for i in range(len(x)):
-            yi = np.dot(w, x[i])
-            det_w += x[i] * (y[i] - yi)
-        #   regularization
-        det_w -= lamda * w
-        #   debug information
-        if it % 1000 == 0:
-            loss = calculate_loss(x, y, w, lamda)
-            print("it = %d, loss = %f" % (it, loss))
-            norm = np.linalg.norm(det_w)
-            print("norm = %f" % norm)
-        w += lr * det_w
+    batch_count = len(x) // batch_size
+
+    for batch_i in range(batch_count):
+        for it in range(iterations):
+            det_w = np.zeros((1, len(x[0])))[0]
+            for i in range(batch_size):
+                yi = np.dot(w, x[batch_i * batch_size + i])
+                det_w += x[batch_i * batch_size + i] * (y[i] - yi)
+            #   regularization
+            det_w -= lamda * w
+            #   debug information
+            if it % 100 == 0:
+                loss = calculate_loss(x[batch_i * batch_size: (batch_i+1) * batch_size],
+                                      y[batch_i * batch_size: (batch_i+1) * batch_size], w, lamda)
+                print("it = %d, loss = %f" % (it, loss))
+                norm = np.linalg.norm(det_w)
+                print("norm = %f" % norm)
+            w += lr * det_w
     return w
 
 
@@ -128,7 +132,7 @@ if __name__ == '__main__':
 
     print(train_data[0])
 
-    w = gradient_descent(train_data[:100], train_label, 0.1, 0, 10000)
+    w = gradient_descent(train_data, train_label, 0.1, 0, 10000, 1000)
     print("weight = " + str(w))
 
     y = predict(train_data[:10], w)
