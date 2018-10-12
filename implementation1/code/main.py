@@ -132,20 +132,21 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
 
     batch_count = len(x) // batch_size
 
-    for batch_i in range(batch_count):
-        for it in range(iterations):
+    for it in range(iterations):
+        for batch_i in range(batch_count):
             det_w = np.zeros((1, len(x[0])))[0]
             for i in range(batch_size):
                 yi = np.dot(w, x[batch_i * batch_size + i])
                 det_w += x[batch_i * batch_size + i] * (y[i] - yi)
             #   add the regularization item
             det_w -= lamda * w
+            norm = np.linalg.norm(det_w)
+            # if norm <= 0.5:
+            #     break
             #   print debug information
-            if it % 100 == 0:
-                loss = calculate_loss(x[batch_i * batch_size: (batch_i+1) * batch_size],
-                                      y[batch_i * batch_size: (batch_i+1) * batch_size], w, lamda)
-                print("it = %d, loss = %f" % (it, loss))
-                norm = np.linalg.norm(det_w)
+            if it % 100 == 0 and batch_i == batch_count - 1:
+                loss = calculate_loss(x, y, w, lamda)
+                print("it = %d, loss expectation = %f" % (it, loss / len(x)))
                 print("norm = %f" % norm)
             w += lr * det_w
     return w
@@ -195,8 +196,15 @@ if __name__ == '__main__':
 
     print(train_data[0])
 
-    weights = gradient_descent(train_data, train_label, 0.1, 0, 10000, 1000)
+    learning_rate = 0.1
+    lamda = 0.1
+
+    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 1000, 1000)
     print("weight = " + str(weights))
+
+    validate_data, validate_label = load_data('PA1_dev.csv')
+    loss = calculate_loss(validate_data, validate_label, weights, lamda)
+    print("loss expectation on dev dataset: %f" % (loss / len(validate_data)))
 
     labels = predict(train_data[:10], weights)
     print("predict: " + str(labels))
