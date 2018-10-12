@@ -26,7 +26,7 @@ def load_data(filename, has_label=True):
         #   process the year of renovated
         #   if the year of renovated is 0, set it as the year of built
         if tmp[i][17] == '0':
-            tmp[i][17] = tmp[i][16]
+            tmp[i][17] = 2018.0 - float(tmp[i][16])
 
         #   process the zip code
         #   if the zip code starts with 981, set it as category 1
@@ -145,8 +145,7 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
             #     break
             #   print debug information
             if it % 100 == 0 and batch_i == batch_count - 1:
-                loss = calculate_loss(x, y, w, lamda)
-                print("it = %d, loss expectation = %f" % (it, loss / len(x)))
+                print("it = %d, loss expectation = %f" % (it, calculate_loss(x, y, w, lamda)))
                 print("norm = %f" % norm)
             w += lr * det_w
     return w
@@ -169,7 +168,7 @@ def calculate_loss(x, y, w, lamda):
         yi = np.dot(w, x[i])
         loss += (y[i] - yi)**2
     loss += lamda * np.dot(w, w)
-    return loss
+    return loss / len(x)
 
 
 def predict(x, w):
@@ -196,17 +195,17 @@ if __name__ == '__main__':
 
     print(train_data[0])
 
-    learning_rate = 0.1
-    lamda = 0.1
+    learning_rate = 0.01
+    lamda = 0.01
 
-    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 1000, 1000)
+    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 2000, 10000)
     print("weight = " + str(weights))
 
     validate_data, validate_label = load_data('PA1_dev.csv')
-    loss = calculate_loss(validate_data, validate_label, weights, lamda)
-    print("loss expectation on dev dataset: %f" % (loss / len(validate_data)))
+    validate_data = normalize_matrix(validate_data)
+    print("loss expectation on validation dataset: %f" % (calculate_loss(validate_data, validate_label, weights, lamda)))
 
-    labels = predict(train_data[:10], weights)
+    labels = predict(validate_data[:10], weights)
     print("predict: " + str(labels))
 
-    print("ground truth: " + str(train_label[:10]))
+    print("ground truth: " + str(validate_label[:10]))
