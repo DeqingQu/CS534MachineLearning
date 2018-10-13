@@ -1,5 +1,6 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
+import csv
 
 def load_data(filename, has_label=True):
     """
@@ -41,13 +42,41 @@ def load_data(filename, has_label=True):
             tmp[i][18] = 0
         else:
             tmp[i][18] = -1
+
     #   remove the original data column
     tmp = np.delete(tmp, 1, axis=1)
-    tmp = np.delete(tmp, 7, axis=1)
-    tmp = np.delete(tmp, 20, axis=1)
 
     #   transfer the dtype of the matrix from string to float
     tmp = tmp.astype(float)
+
+    # # boost the sqrt living, condition, grade, sqrt living 15
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    # for i in range(len(tmp)):
+    #     tmp[i][22] = tmp[i][6] ** 2     # sqrt living
+    #     tmp[i][23] = tmp[i][11] ** 2    # condition
+    #     tmp[i][24] = tmp[i][12] ** 2    # grade
+    #     tmp[i][25] = tmp[i][20] ** 2    # sqrt living 15
+
+    #   generate basement / above ratio
+    #   generate living15 / lot15 ratio
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    # tmp = np.insert(tmp, 22, values=1.0, axis=1)
+
+
+    # #   generate more features
+    # for i in range(0, 22):
+    #     tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    #     tmp = np.insert(tmp, 22, values=1.0, axis=1)
+    #
+    # for i in range(len(tmp)):
+    #     # tmp[i][22] = tmp[i][7] - tmp[i][6]
+    #     # tmp[i][23] = tmp[i][21] - tmp[i][20]
+    #     for j in range(0, 22):
+    #         tmp[i][22+j] = tmp[i][j] ** 2
+    #         tmp[i][44 + j] = tmp[i][j] ** 3
 
     if has_label:
         return tmp[:, :-1], tmp[:, -1]
@@ -81,6 +110,8 @@ def normalize(v):
     :return:
     """
     if np.ptp(v) == 0:
+        if v[0] == 0:
+            return v
         return v / v[0]
     return (v - v.min()) / (np.ptp(v))
     # norm = np.linalg.norm(v)
@@ -137,30 +168,60 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
     :param batch_size:  the batch size for mini-batch
     :return:    weights
     """
-    w = np.zeros((1, len(x[0])))[0]
+    w = np.random.uniform(-0.2, 0.2, len(x[0]))
 
     batch_count = len(x) // batch_size
 
-    for it in range(iterations):
+    output_iter = [0, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 8000,
+                   10000, 20000, 30000, 40000, 50000, 100000, 150000, 200000]
+    output_sse = []
+    output_norm = []
+
+    for it in range(iterations+1):
         for batch_i in range(batch_count):
 
             p_y = np.matmul(x[batch_i * batch_size: (batch_i + 1) * batch_size], w)
             det_w = np.matmul(np.transpose(x[batch_i * batch_size: (batch_i + 1) * batch_size]), y - p_y)
             #   add the regularization item
-            det_w += lamda * w
-            # if norm <= 0.5:
-            #     break
+            w_for_reg = np.array(w)
+            w_for_reg[0] = 0
+            det_w += lamda * w_for_reg
+            norm = np.linalg.norm(det_w)
+
+            #   threshold for end iteration
+            if norm <= 0.5:
+                print("iteration ends : " + str(it))
+                #   output result
+                with open(str(lr) + '_stats.csv', mode='w') as file:
+                    writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    writer.writerow(output_iter)
+                    writer.writerow(output_sse)
+                    writer.writerow(output_norm)
+                return w
+
             #   print debug information
-            if it % 100 == 0 and batch_i == batch_count - 1:
-                print("it = %d, loss expectation = %f" % (it, calculate_loss(x, y, w, lamda)))
-                norm = np.linalg.norm(det_w)
-                print("det w = " + str(det_w))
+            if (it in output_iter) and batch_i == batch_count - 1:
+                sse = calculate_loss(x, y, w)
+                output_sse.append(sse)
+                output_norm.append(norm)
+            if (it % 1000 == 0) and batch_i == batch_count - 1:
+                sse = calculate_loss(x, y, w)
+                print("it = %d, SSE = %f" % (it, sse))
+                # print("det w = " + str(det_w))
                 print("norm = %f" % norm)
-            w += lr * det_w
+
+            w -= lr * det_w
+
+    #   output result
+    with open(str(lr) + '_stats.csv', mode='w') as file:
+        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(output_iter)
+        writer.writerow(output_sse)
+        writer.writerow(output_norm)
     return w
 
 
-def calculate_loss(x, y, w, lamda):
+def calculate_loss(x, y, w):
     """
     calculate the SSE
 
@@ -176,8 +237,7 @@ def calculate_loss(x, y, w, lamda):
     for i in range(len(x)):
         yi = np.dot(w, x[i])
         loss += (y[i] - yi)**2
-    loss += lamda * np.dot(w, w)
-    return loss / len(x)
+    return loss  # / len(x)
 
 
 def predict(x, w):
@@ -194,25 +254,30 @@ def predict(x, w):
 
 
 if __name__ == '__main__':
+    learning_rate = 0.00001
+    lamda = 0.1
+    max_iterations = 200000
     train_data, train_label = load_data('PA1_train.csv')
+
     print(train_data[0])
     print(train_label)
 
     report_statistics(train_data)
 
+    # plt.plot(train_data[:1000, 20], train_label[:1000], 'ro')
+    # plt.axis([0, 5000, 0, 50])
+    # plt.show()
+
     train_data = normalize_matrix(train_data)
 
     print(train_data[0])
 
-    learning_rate = 0.00001
-    lamda = 0
-
-    weights = gradient_descent(train_data, train_label, learning_rate, lamda, 20000, 10000)
+    weights = gradient_descent(train_data, train_label, learning_rate, lamda, max_iterations, 10000)
     print("weight = " + str(weights))
 
     validate_data, validate_label = load_data('PA1_dev.csv')
     validate_data = normalize_matrix(validate_data)
-    print("loss expectation on validation dataset: %f" % (calculate_loss(validate_data, validate_label, weights, lamda)))
+    print("SSE on validation dataset: %f" % (calculate_loss(validate_data, validate_label, weights)))
 
     labels = predict(validate_data[:10], weights)
     print("predict: " + str(labels))
