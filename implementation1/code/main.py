@@ -26,9 +26,11 @@ def load_data(filename, has_label=True):
         #   process the year of renovated
         #   if the year of renovated is 0, set it as the year of built
         if tmp[i][17] == '0':
-            tmp[i][17] = 2018.0 - float(tmp[i][16])
-        else:
-            tmp[i][17] = 2018.0 - float(tmp[i][17])
+            tmp[i][17] = tmp[i][16]
+
+        #   process the bedrooms, if more than 10, set it to ten
+        if float(tmp[i][5]) > 10:
+            tmp[i][5] = 10
 
         #   process the zip code
         #   if the zip code starts with 981, set it as category 1
@@ -133,7 +135,7 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
     :param batch_size:  the batch size for mini-batch
     :return:    weights
     """
-    w = np.random.random((1, len(x[0])))[0]
+    w = np.zeros((1, len(x[0])))[0]
 
     batch_count = len(x) // batch_size
 
@@ -142,11 +144,7 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
 
             p_y = np.matmul(x[batch_i * batch_size: (batch_i + 1) * batch_size], w)
             det_w = np.matmul(np.transpose(x[batch_i * batch_size: (batch_i + 1) * batch_size]), y - p_y)
-            # det_w = np.zeros((1, len(x[0])))[0]
-            # for i in range(batch_size):
-            #     yi = np.dot(w, x[batch_i * batch_size + i])
-            #     det_w += x[batch_i * batch_size + i] * (y[i] - yi)
-            # #   add the regularization item
+            #   add the regularization item
             det_w += lamda * w
             # if norm <= 0.5:
             #     break
@@ -205,9 +203,9 @@ if __name__ == '__main__':
     print(train_data[0])
 
     learning_rate = 0.00001
-    lamda = 0.1
+    lamda = 0
 
-    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 10000, 10000)
+    weights = gradient_descent(train_data, train_label, learning_rate, lamda, 20000, 10000)
     print("weight = " + str(weights))
 
     validate_data, validate_label = load_data('PA1_dev.csv')
