@@ -139,12 +139,15 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
 
     for it in range(iterations):
         for batch_i in range(batch_count):
-            det_w = np.zeros((1, len(x[0])))[0]
-            for i in range(batch_size):
-                yi = np.dot(w, x[batch_i * batch_size + i])
-                det_w += x[batch_i * batch_size + i] * (y[i] - yi)
-            #   add the regularization item
-            det_w -= lamda * w
+
+            p_y = np.matmul(x[batch_i * batch_size: (batch_i + 1) * batch_size], w)
+            det_w = np.matmul(np.transpose(x[batch_i * batch_size: (batch_i + 1) * batch_size]), y - p_y)
+            # det_w = np.zeros((1, len(x[0])))[0]
+            # for i in range(batch_size):
+            #     yi = np.dot(w, x[batch_i * batch_size + i])
+            #     det_w += x[batch_i * batch_size + i] * (y[i] - yi)
+            # #   add the regularization item
+            det_w += lamda * w
             # if norm <= 0.5:
             #     break
             #   print debug information
@@ -202,9 +205,9 @@ if __name__ == '__main__':
     print(train_data[0])
 
     learning_rate = 0.00001
-    lamda = 0
+    lamda = 0.1
 
-    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 2000, 10000)
+    weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 10000, 10000)
     print("weight = " + str(weights))
 
     validate_data, validate_label = load_data('PA1_dev.csv')
