@@ -1,6 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import csv
+
 
 def load_data(filename, has_label=True):
     """
@@ -9,7 +10,7 @@ def load_data(filename, has_label=True):
     :param has_label: True if the data file has label column
     :return: matrix
     """
-    tmp = np.loadtxt('data/' + filename, dtype=np.str, delimiter=",")
+    tmp = np.loadtxt(filename, dtype=np.str, delimiter=",")
     #   remove the title row
     tmp = np.delete(tmp, 0, axis=0)
 
@@ -64,19 +65,6 @@ def load_data(filename, has_label=True):
     #   generate living15 / lot15 ratio
     # tmp = np.insert(tmp, 22, values=1.0, axis=1)
     # tmp = np.insert(tmp, 22, values=1.0, axis=1)
-
-
-    # #   generate more features
-    # for i in range(0, 22):
-    #     tmp = np.insert(tmp, 22, values=1.0, axis=1)
-    #     tmp = np.insert(tmp, 22, values=1.0, axis=1)
-    #
-    # for i in range(len(tmp)):
-    #     # tmp[i][22] = tmp[i][7] - tmp[i][6]
-    #     # tmp[i][23] = tmp[i][21] - tmp[i][20]
-    #     for j in range(0, 22):
-    #         tmp[i][22+j] = tmp[i][j] ** 2
-    #         tmp[i][44 + j] = tmp[i][j] ** 3
 
     if has_label:
         return tmp[:, :-1], tmp[:, -1]
@@ -191,12 +179,6 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
             #   threshold for end iteration
             if norm <= 0.5:
                 print("iteration ends : " + str(it))
-                #   output result
-                with open(str(lr) + '_stats.csv', mode='w') as file:
-                    writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    writer.writerow(output_iter)
-                    writer.writerow(output_sse)
-                    writer.writerow(output_norm)
                 return w
 
             #   print debug information
@@ -254,32 +236,33 @@ def predict(x, w):
 
 
 if __name__ == '__main__':
-    learning_rate = 0.00001
-    lamda = 0.001
-    max_iterations = 200000
+    learning_rate = 0.0000001
+    lamda = 0
+    max_iterations = 500000
+    batch_size = 10000
     train_data, train_label = load_data('PA1_train.csv')
 
-    print(train_data[0])
-    print(train_label)
-
-    report_statistics(train_data)
-
-    # plt.plot(train_data[:1000, 20], train_label[:1000], 'ro')
-    # plt.axis([0, 5000, 0, 50])
-    # plt.show()
-
+    # report_statistics(train_data)
     train_data = normalize_matrix(train_data)
 
-    print(train_data[0])
-
-    weights = gradient_descent(train_data, train_label, learning_rate, lamda, max_iterations, 10000)
+    weights = gradient_descent(train_data, train_label, learning_rate, lamda, max_iterations, batch_size)
     print("weight = " + str(weights))
 
     validate_data, validate_label = load_data('PA1_dev.csv')
     validate_data = normalize_matrix(validate_data)
     print("SSE on validation dataset: %f" % (calculate_loss(validate_data, validate_label, weights)))
 
-    labels = predict(validate_data[:10], weights)
-    print("predict: " + str(labels))
+    # labels = predict(validate_data[:10], weights)
+    # print("predict: " + str(labels))
+    #
+    # print("ground truth: " + str(validate_label[:10]))
 
-    print("ground truth: " + str(validate_label[:10]))
+    test_data = load_data('PA1_test.csv', has_label=False)
+    test_data = normalize_matrix(test_data)
+    test_labels = predict(test_data, weights)
+
+    # #   output result
+    # with open('predict_test.csv', mode='w') as file:
+    #     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    #     for i in range(len(test_labels)):
+    #         writer.writerow([test_labels[i]])
