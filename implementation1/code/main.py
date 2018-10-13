@@ -27,6 +27,8 @@ def load_data(filename, has_label=True):
         #   if the year of renovated is 0, set it as the year of built
         if tmp[i][17] == '0':
             tmp[i][17] = 2018.0 - float(tmp[i][16])
+        else:
+            tmp[i][17] = 2018.0 - float(tmp[i][17])
 
         #   process the zip code
         #   if the zip code starts with 981, set it as category 1
@@ -74,10 +76,13 @@ def normalize(v):
     :param v:
     :return:
     """
-    norm = np.linalg.norm(v)
-    if norm == 0:
-       return v
-    return v / norm
+    if np.ptp(v) == 0:
+        return v / v[0]
+    return (v - v.min()) / (np.ptp(v))
+    # norm = np.linalg.norm(v)
+    # if norm == 0:
+    #    return v
+    # return v / norm
 
 
 def normalize_matrix(data):
@@ -140,12 +145,13 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
                 det_w += x[batch_i * batch_size + i] * (y[i] - yi)
             #   add the regularization item
             det_w -= lamda * w
-            norm = np.linalg.norm(det_w)
             # if norm <= 0.5:
             #     break
             #   print debug information
             if it % 100 == 0 and batch_i == batch_count - 1:
                 print("it = %d, loss expectation = %f" % (it, calculate_loss(x, y, w, lamda)))
+                norm = np.linalg.norm(det_w)
+                print("det w = " + str(det_w))
                 print("norm = %f" % norm)
             w += lr * det_w
     return w
@@ -195,8 +201,8 @@ if __name__ == '__main__':
 
     print(train_data[0])
 
-    learning_rate = 0.01
-    lamda = 0.01
+    learning_rate = 0.00001
+    lamda = 0
 
     weights = gradient_descent(train_data[:10000], train_label, learning_rate, lamda, 2000, 10000)
     print("weight = " + str(weights))
