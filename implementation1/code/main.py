@@ -43,6 +43,8 @@ def load_data(filename, has_label=True):
             tmp[i][18] = -1
     #   remove the original data column
     tmp = np.delete(tmp, 1, axis=1)
+    tmp = np.delete(tmp, 7, axis=1)
+    tmp = np.delete(tmp, 20, axis=1)
 
     #   transfer the dtype of the matrix from string to float
     tmp = tmp.astype(float)
