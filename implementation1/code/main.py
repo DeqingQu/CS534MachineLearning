@@ -181,7 +181,7 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
         for batch_i in range(batch_count):
 
             p_y = np.matmul(x[batch_i * batch_size: (batch_i + 1) * batch_size], w)
-            det_w = np.matmul(np.transpose(x[batch_i * batch_size: (batch_i + 1) * batch_size]), y - p_y)
+            det_w = np.matmul(np.transpose(x[batch_i * batch_size: (batch_i + 1) * batch_size]), p_y - y)
             #   add the regularization item
             w_for_reg = np.array(w)
             w_for_reg[0] = 0
@@ -255,7 +255,7 @@ def predict(x, w):
 
 if __name__ == '__main__':
     learning_rate = 0.00001
-    lamda = 0.1
+    lamda = 0.001
     max_iterations = 200000
     train_data, train_label = load_data('PA1_train.csv')
 
