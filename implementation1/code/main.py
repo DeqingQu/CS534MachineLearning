@@ -1,5 +1,7 @@
 import numpy as np
-# import matplotlib.pyplot as plt
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 import csv
 
 
@@ -226,8 +228,26 @@ if __name__ == '__main__':
     batch_size = 10000
     train_data, train_label = load_data('PA1_train.csv')
 
+    #   plot features
+    features = [6, 7, 13, 14, 18, 19, 20, 21]
+    for i in features:
+        plt.figure(figsize=(15, 6))
+        plt.subplot(1, 2, 1)
+        fig = sns.boxplot(y=train_data[:, i])
+        fig.set_title('')
+        fig.set_ylabel(i)
+
+        plt.subplot(1, 2, 2)
+        df = pd.DataFrame(train_data[:, i])
+        fig = sns.distplot(df.dropna())
+        fig.set_ylabel('Number of houses')
+        fig.set_xlabel(i)
+
+        plt.show()
+
     # report_statistics(train_data)
     train_data = normalize_matrix(train_data)
+
 
     weights = gradient_descent(train_data, train_label, learning_rate, lamda, max_iterations, batch_size)
     print("weight = " + str(weights))
