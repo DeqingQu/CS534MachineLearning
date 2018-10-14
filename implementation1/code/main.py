@@ -160,11 +160,6 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
 
     batch_count = len(x) // batch_size
 
-    output_iter = [0, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 8000,
-                   10000, 20000, 30000, 40000, 50000, 100000, 150000, 200000]
-    output_sse = []
-    output_norm = []
-
     for it in range(iterations+1):
         for batch_i in range(batch_count):
 
@@ -182,10 +177,6 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
                 return w
 
             #   print debug information
-            if (it in output_iter) and batch_i == batch_count - 1:
-                sse = calculate_loss(x, y, w)
-                output_sse.append(sse)
-                output_norm.append(norm)
             if (it % 1000 == 0) and batch_i == batch_count - 1:
                 sse = calculate_loss(x, y, w)
                 print("it = %d, SSE = %f" % (it, sse))
@@ -193,13 +184,6 @@ def gradient_descent(x, y, lr, lamda, iterations, batch_size):
                 print("norm = %f" % norm)
 
             w -= lr * det_w
-
-    #   output result
-    with open(str(lr) + '_stats.csv', mode='w') as file:
-        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(output_iter)
-        writer.writerow(output_sse)
-        writer.writerow(output_norm)
     return w
 
 
@@ -236,9 +220,9 @@ def predict(x, w):
 
 
 if __name__ == '__main__':
-    learning_rate = 0.0000001
-    lamda = 0
-    max_iterations = 500000
+    learning_rate = 0.00001
+    lamda = 1
+    max_iterations = 1000000
     batch_size = 10000
     train_data, train_label = load_data('PA1_train.csv')
 
@@ -252,17 +236,12 @@ if __name__ == '__main__':
     validate_data = normalize_matrix(validate_data)
     print("SSE on validation dataset: %f" % (calculate_loss(validate_data, validate_label, weights)))
 
-    # labels = predict(validate_data[:10], weights)
-    # print("predict: " + str(labels))
-    #
-    # print("ground truth: " + str(validate_label[:10]))
-
     test_data = load_data('PA1_test.csv', has_label=False)
     test_data = normalize_matrix(test_data)
     test_labels = predict(test_data, weights)
 
-    # #   output result
-    # with open('predict_test.csv', mode='w') as file:
-    #     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    #     for i in range(len(test_labels)):
-    #         writer.writerow([test_labels[i]])
+    #   output result to csv
+    with open('predict_test.csv', mode='w') as file:
+        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for i in range(len(test_labels)):
+            writer.writerow([test_labels[i]])
