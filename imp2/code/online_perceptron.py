@@ -31,7 +31,7 @@ def load_data(file_name, has_label=True):
     return x, y
 
 
-def online_training(x_train, y_train, x_valid, y_valid, iters=15):
+def online_perceptron(x_train, y_train, x_valid, y_valid, iters=15):
     w = np.zeros(len(x_train[0]))
     acc_train = []
     acc_valid = []
@@ -42,6 +42,30 @@ def online_training(x_train, y_train, x_valid, y_valid, iters=15):
                 w += y_train[t] * x_train[t]
         acc_train.append(test_accuracy(w, x_train, y_train))
         acc_valid.append(test_accuracy(w, x_valid, y_valid))
+        print("iter %d, accuracy_train = %f, accuracy_valid = %f" % (i, acc_train[i], acc_valid[i]))
+    return w, acc_train, acc_valid
+
+
+def average_perceptron(x_train, y_train, x_valid, y_valid, iters=15):
+    w = np.zeros(len(x_train[0]))
+    w_a = np.zeros(len(x_train[0]))
+    acc_train, acc_valid = [], []
+    c, s = 0, 0
+    for i in range(iters):
+        for t in range(len(x_train)):
+            u = np.sign(x_train[t].dot(w))
+            if u * y_train[t] <= 0:
+                if s + c > 0:
+                    w_a = (s * w_a + w * c) / (s + c)
+                s = s + c
+                w += y_train[t] * x_train[t]
+                c = 0
+            else:
+                c += 1
+        if c > 0:
+            w_a = (s * w_a + w * c) / (s + c)
+        acc_train.append(test_accuracy(w_a, x_train, y_train))
+        acc_valid.append(test_accuracy(w_a, x_valid, y_valid))
         print("iter %d, accuracy_train = %f, accuracy_valid = %f" % (i, acc_train[i], acc_valid[i]))
     return w, acc_train, acc_valid
 
@@ -76,7 +100,11 @@ if __name__ == '__main__':
     sample_train, label_train = load_data("pa2_train.csv")
     sample_valid, label_valid = load_data("pa2_valid.csv")
 
-    w, acc_t, acc_v = online_training(sample_train, label_train, sample_valid, label_valid, iters=30)
-    # print(w)
+    #   Online Perceptron
+    # w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=15)
+    # plot_accuracy(acc_t_op, acc_v_op)
 
-    plot_accuracy(acc_t, acc_v)
+    #   Average Perceptron
+    w_ap, acc_t_ap, acc_v_ap = average_perceptron(sample_train, label_train, sample_valid, label_valid, iters=50)
+    plot_accuracy(acc_t_ap, acc_v_ap)
+
