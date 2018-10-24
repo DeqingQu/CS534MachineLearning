@@ -33,15 +33,17 @@ def load_data(file_name, has_label=True):
 
 def online_training(x_train, y_train, x_valid, y_valid, iters=15):
     w = np.zeros(len(x_train[0]))
+    acc_train = []
+    acc_valid = []
     for i in range(iters):
         for t in range(len(x_train)):
             u = np.sign(x_train[t].dot(w))
             if u * y_train[t] <= 0:
                 w += y_train[t] * x_train[t]
-        acc_train = test_accuracy(w, x_train, y_train)
-        acc_valid = test_accuracy(w, x_valid, y_valid)
-        print("iter %d, accuracy_train = %f, accuracy_valid = %f" % (i, acc_train, acc_valid))
-    return w
+        acc_train.append(test_accuracy(w, x_train, y_train))
+        acc_valid.append(test_accuracy(w, x_valid, y_valid))
+        print("iter %d, accuracy_train = %f, accuracy_valid = %f" % (i, acc_train[i], acc_valid[i]))
+    return w, acc_train, acc_valid
 
 
 def predict(w, x):
@@ -59,9 +61,22 @@ def test_accuracy(w, x, y):
     return 1 - sum_diff / len(y)
 
 
+def plot_accuracy(acc_train, acc_valid):
+    iters = range(1, len(acc_train)+1)
+    plt.figure()
+    plt.plot(iters, acc_train, "b-", linewidth=1)
+    plt.plot(iters, acc_valid, "r-", linewidth=1)
+    plt.xlabel("Iterations")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy vs. Iterations")
+    plt.show()
+
+
 if __name__ == '__main__':
     sample_train, label_train = load_data("pa2_train.csv")
     sample_valid, label_valid = load_data("pa2_valid.csv")
 
-    w = online_training(sample_train, label_train, sample_valid, label_valid)
+    w, acc_t, acc_v = online_training(sample_train, label_train, sample_valid, label_valid, iters=30)
     # print(w)
+
+    plot_accuracy(acc_t, acc_v)
