@@ -2,33 +2,34 @@ Language: Python 3.5
 
 Packages: Numpy, csv, argparse
 
-How to run Part 1: Online Perceptron  
-python3 main.py --run op
+How to run
+
+Part 1: Online Perceptron  
+python3 main.py --run op -i 15
 
 Output example:  
-iter 1, accuracy_train = 0.947422, accuracy_valid = 0.933702  
-iter 2, accuracy_train = 0.957651, accuracy_valid = 0.945365  
-iter 3, accuracy_train = 0.949877, accuracy_valid = 0.934929  
-iter 4, accuracy_train = 0.964812, accuracy_valid = 0.948435  
+iteration number	accuracy on the training set	accuracy on the validation set  
+1	0.947422	0.933702  
+2	0.957651	0.945365  
+3	0.949877	0.934929  
 ...
 
-How to run Part 2: Average Perceptron  
-python3 main.py --run ap
+Part 2: Average Perceptron  
+python3 main.py --run ap -i 15
 
 Output example:  
-iter 1, accuracy_train = 0.956424, accuracy_valid = 0.944751  
-iter 2, accuracy_train = 0.961743, accuracy_valid = 0.949662  
-iter 3, accuracy_train = 0.963175, accuracy_valid = 0.951504  
-iter 4, accuracy_train = 0.966244, accuracy_valid = 0.950890  
+iteration number	accuracy on the training set	accuracy on the validation set  
+1	0.956424	0.944751  
+2	0.961743	0.949662  
+3	0.963175	0.951504  
 ...
 
 How to run Part 3: Kernel Perceptron  
-python3 main.py --run kp
+python3 main.py --run kp -i 15 -p 3
 
 Output example:  
-P = 3  
-iter 0, accuracy_train = 0.978928, accuracy_valid = 0.967465  
-iter 1, accuracy_train = 0.985679, accuracy_valid = 0.969306  
-iter 2, accuracy_train = 0.988134, accuracy_valid = 0.974217  
-iter 3, accuracy_train = 0.986702, accuracy_valid = 0.971148  
+iteration number	accuracy on the training set	accuracy on the validation set  
+1	0.980769	0.969920  
+2	0.992840	0.980970  
+3	0.998363	0.981584  
 ...
