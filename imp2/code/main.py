@@ -86,52 +86,40 @@ def average_perceptron(x_train, y_train, x_valid, y_valid, iters=15):
 
 
 def kernel_function(x, y, p):
-    return (1 + np.dot(x, y)) ** p
+    # return (1 + np.dot(x, y)) ** p
+    return np.power((np.matmul(x, y.T) + 1), p)
 
 
-def kernel_function_3(x, y):
-    return (1 + np.dot(x, y)) ** 3
-
-
-def kernel_perceptron(x_train, y_train, x_valid, y_valid, p, iters=15):
+def kernel_perceptron(x_train, y_train, x_valid, y_valid, p=3, iters=15):
     acc_train, acc_valid = [], []
     N = len(x_train)
     alpha = np.zeros(N)
+    y_train = y_train.T[0]
+    y_valid = y_valid.T[0]
 
     #   Gram Matrix
-    K = np.zeros((N, N))
-    for i in range(N):
-        if i % 500 == 0:
-            print("i = %d" % i)
-        for j in range(N):
-            K[i, j] = kernel_function(x_train[i], x_train[j], p)
+    K_train = kernel_function(x_train, x_train, p)
+    K_validation = kernel_function(x_valid, x_train, p)
 
     for it in range(iters):
         for i in range(N):
-            u = 0
-            for j in range(N):
-                u += K[j, i] * alpha[j] * y_train[j]
-            u = np.sign(u)
+            u = np.sign(np.dot(K_train[i], np.multiply(alpha, y_train)))
             if y_train[i] * u <= 0:
                 alpha[i] += 1
 
-        pred = predict_kernel(x_train, alpha, x_train, y_train, p)
+        pred = predict_kernel(K_train, alpha, y_train)
         acc_train.append(test_accuracy_kernel(pred, y_train))
-        pred = predict_kernel(x_valid, alpha, x_train, y_train, p)
+
+        pred = predict_kernel(K_validation, alpha, y_train)
         acc_valid.append(test_accuracy_kernel(pred, y_valid))
         print("P = %d\niter %d, accuracy_train = %f, accuracy_valid = %f" % (p, it+1, acc_train[it], acc_valid[it]))
     return alpha, acc_train, acc_valid
 
 
-def predict_kernel(x_test, alpha, x_train, y_train, p):
-    res = []
-    for t in range(len(x_test)):
-        u = 0
-        for j in range(len(x_train)):
-            u += kernel_function(x_train[j], x_test[t], p) * alpha[j] * y_train[j]
-        u = np.sign(u)
-        res.append(u)
-    return res
+def predict_kernel(gram_matrix, alpha, y_train):
+    #   Gram Matrix
+    K = gram_matrix
+    return np.sign(np.matmul(K, np.multiply(alpha, y_train)))
 
 
 def test_accuracy_kernel(pre, y):
@@ -189,6 +177,6 @@ if __name__ == '__main__':
     # plot_accuracy(acc_t_ap, acc_v_ap, "Average Perceptron")
     #
     #   Kernel Perceptron
-    a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train[:500], label_train[:500], sample_valid, label_valid, p=3, iters=15)
+    a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=15, iters=15)
     plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
 
