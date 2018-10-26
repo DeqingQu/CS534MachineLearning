@@ -89,6 +89,10 @@ def kernel_function(x, y, p):
     return (1 + np.dot(x, y)) ** p
 
 
+def kernel_function_3(x, y):
+    return (1 + np.dot(x, y)) ** 3
+
+
 def kernel_perceptron(x_train, y_train, x_valid, y_valid, p, iters=15):
     acc_train, acc_valid = [], []
     N = len(x_train)
@@ -102,30 +106,28 @@ def kernel_perceptron(x_train, y_train, x_valid, y_valid, p, iters=15):
         for j in range(N):
             K[i, j] = kernel_function(x_train[i], x_train[j], p)
 
-    for i in range(iters):
-        j_pool = [0]
-        for t in range(len(x_train)):
+    for it in range(iters):
+        for i in range(N):
             u = 0
-            for _, j in enumerate(j_pool):
-                u += K[j, t] * alpha[j] * y_train[j]
+            for j in range(N):
+                u += K[j, i] * alpha[j] * y_train[j]
             u = np.sign(u)
-            if y_train[t] * u <= 0:
-                alpha[t] += 1
-                j_pool.append(t)
+            if y_train[i] * u <= 0:
+                alpha[i] += 1
 
-        pred = predict_kernel(x_train, alpha, x_train, y_train, j_pool, p)
+        pred = predict_kernel(x_train, alpha, x_train, y_train, p)
         acc_train.append(test_accuracy_kernel(pred, y_train))
-        pred = predict_kernel(x_valid, alpha, x_train, y_train, j_pool, p)
+        pred = predict_kernel(x_valid, alpha, x_train, y_train, p)
         acc_valid.append(test_accuracy_kernel(pred, y_valid))
-        print("P = %d\niter %d, accuracy_train = %f, accuracy_valid = %f" % (p, i+1, acc_train[i], acc_valid[i]))
+        print("P = %d\niter %d, accuracy_train = %f, accuracy_valid = %f" % (p, it+1, acc_train[it], acc_valid[it]))
     return alpha, acc_train, acc_valid
 
 
-def predict_kernel(x_test, alpha, x_train, y_train, j_pool, p):
+def predict_kernel(x_test, alpha, x_train, y_train, p):
     res = []
     for t in range(len(x_test)):
         u = 0
-        for _, j in enumerate(j_pool):
+        for j in range(len(x_train)):
             u += kernel_function(x_train[j], x_test[t], p) * alpha[j] * y_train[j]
         u = np.sign(u)
         res.append(u)
@@ -153,30 +155,30 @@ def plot_accuracy(acc_train, acc_valid, title):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Perceptron Implementation')
-
-    parser.add_argument('--run', help="run method: op (Online Perceptron), ap (Average Perceptron), kp (Kernel Perceptron)", default='')
-    parser.add_argument("-i", "--iterations", help="iteration number (default: 15)", default='15')
-    parser.add_argument("-p", "--p", help="p for the kernel function (default: 3)", default='3')
-    args = parser.parse_args()
-
-    if args.run == '':
-        print('usage: main.py [--runfunc RUNFUNC: op, ap, kp] [-p p]')
-        print('main.py: error: invalid parameter')
-        exit(0)
-
+    # parser = argparse.ArgumentParser(description='Perceptron Implementation')
+    #
+    # parser.add_argument('--run', help="run method: op (Online Perceptron), ap (Average Perceptron), kp (Kernel Perceptron)", default='')
+    # parser.add_argument("-i", "--iterations", help="iteration number (default: 15)", default='15')
+    # parser.add_argument("-p", "--p", help="p for the kernel function (default: 3)", default='3')
+    # args = parser.parse_args()
+    #
+    # if args.run == '':
+    #     print('usage: main.py [--runfunc RUNFUNC: op, ap, kp] [-p p]')
+    #     print('main.py: error: invalid parameter')
+    #     exit(0)
+    #
     sample_train, label_train = load_data("pa2_train.csv")
     sample_valid, label_valid = load_data("pa2_valid.csv")
-
-    if args.run == 'op':
-        w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=int(args.iterations))
-        plot_accuracy(acc_t_op, acc_v_op, "Online Perceptron")
-    elif args.run == 'ap':
-        w_ap, acc_t_ap, acc_v_ap = average_perceptron(sample_train, label_train, sample_valid, label_valid, iters=int(args.iterations))
-        plot_accuracy(acc_t_ap, acc_v_ap, "Average Perceptron")
-    elif args.run == 'kp':
-        a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=int(args.p), iters=int(args.iterations))
-        plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
+    #
+    # if args.run == 'op':
+    #     w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=int(args.iterations))
+    #     plot_accuracy(acc_t_op, acc_v_op, "Online Perceptron")
+    # elif args.run == 'ap':
+    #     w_ap, acc_t_ap, acc_v_ap = average_perceptron(sample_train, label_train, sample_valid, label_valid, iters=int(args.iterations))
+    #     plot_accuracy(acc_t_ap, acc_v_ap, "Average Perceptron")
+    # elif args.run == 'kp':
+    #     a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=int(args.p), iters=int(args.iterations))
+    #     plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
 
     # #   Online Perceptron
     # w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=15)
@@ -186,7 +188,7 @@ if __name__ == '__main__':
     # w_ap, acc_t_ap, acc_v_ap = average_perceptron(sample_train, label_train, sample_valid, label_valid, iters=15)
     # plot_accuracy(acc_t_ap, acc_v_ap, "Average Perceptron")
     #
-    # #   Kernel Perceptron
-    # a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=1, iters=15)
-    # plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
+    #   Kernel Perceptron
+    a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train[:500], label_train[:500], sample_valid, label_valid, p=3, iters=15)
+    plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
 
