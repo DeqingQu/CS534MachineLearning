@@ -25,10 +25,16 @@ def load_data(file_name, has_label=True):
 
         #   insert bias
         x = np.insert(x, 0, values=1.0, axis=1)
+
+        #   transfer label to array, not matrix
+        y = y.T[0]
     else:
         x = df
         #   translate to np.array
         x = np.array(x)
+
+        #   insert bias
+        x = np.insert(x, 0, values=1.0, axis=1)
     return x, y
 
 
@@ -82,7 +88,7 @@ def average_perceptron(x_train, y_train, x_valid, y_valid, iters=15):
         acc_train.append(test_accuracy(w_a, x_train, y_train))
         acc_valid.append(test_accuracy(w_a, x_valid, y_valid))
         print("iter %d, accuracy_train = %f, accuracy_valid = %f" % (i+1, acc_train[i], acc_valid[i]))
-    return w, acc_train, acc_valid
+    return w_a, acc_train, acc_valid
 
 
 def kernel_function(x, y, p):
@@ -94,8 +100,6 @@ def kernel_perceptron(x_train, y_train, x_valid, y_valid, p=3, iters=15):
     acc_train, acc_valid = [], []
     N = len(x_train)
     alpha = np.zeros(N)
-    y_train = y_train.T[0]
-    y_valid = y_valid.T[0]
 
     #   Gram Matrix
     K_train = kernel_function(x_train, x_train, p)
@@ -142,6 +146,12 @@ def plot_accuracy(acc_train, acc_valid, title):
     plt.show()
 
 
+def save_result(file_name, results):
+    with open(file_name, mode='w') as file:
+        writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for i in range(len(results)):
+            writer.writerow([results[i]])
+
 if __name__ == '__main__':
     # parser = argparse.ArgumentParser(description='Perceptron Implementation')
     #
@@ -157,6 +167,7 @@ if __name__ == '__main__':
     #
     sample_train, label_train = load_data("pa2_train.csv")
     sample_valid, label_valid = load_data("pa2_valid.csv")
+    sample_test, _ = load_data("pa2_test_no_label.csv", has_label=False)
     #
     # if args.run == 'op':
     #     w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=int(args.iterations))
@@ -168,15 +179,19 @@ if __name__ == '__main__':
     #     a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=int(args.p), iters=int(args.iterations))
     #     plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
 
-    # #   Online Perceptron
-    # w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=15)
+    #   Online Perceptron
+    # w_op, acc_t_op, acc_v_op = online_perceptron(sample_train, label_train, sample_valid, label_valid, iters=14)
     # plot_accuracy(acc_t_op, acc_v_op, "Online Perceptron")
-    #
-    # #   Average Perceptron
+    # results = predict(w_op, sample_test)
+    # save_result("oplabel.csv", results)
+
+    #   Average Perceptron
     # w_ap, acc_t_ap, acc_v_ap = average_perceptron(sample_train, label_train, sample_valid, label_valid, iters=15)
     # plot_accuracy(acc_t_ap, acc_v_ap, "Average Perceptron")
-    #
-    #   Kernel Perceptron
-    a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=15, iters=15)
-    plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
 
+    #   Kernel Perceptron
+    p = 3
+    a_kp, acc_t_kp, acc_v_kp = kernel_perceptron(sample_train, label_train, sample_valid, label_valid, p=p, iters=15)
+    plot_accuracy(acc_t_kp, acc_v_kp, "Kernel Perceptron")
+    K_test = kernel_function(sample_test, sample_train, p)
+    save_result("kplabel.csv", predict_kernel(K_test, a_kp, label_train))

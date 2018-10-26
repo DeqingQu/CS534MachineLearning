@@ -248,7 +248,6 @@ if __name__ == '__main__':
     # report_statistics(train_data)
     train_data = normalize_matrix(train_data)
 
-
     weights = gradient_descent(train_data, train_label, learning_rate, lamda, max_iterations, batch_size)
     print("weight = " + str(weights))
 
