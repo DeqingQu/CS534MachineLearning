@@ -1,2 +1,2 @@
 # CS534MachineLearning
-Implementations for CS534 MachineLearning
+Implementations for CS534 Machine Learning
