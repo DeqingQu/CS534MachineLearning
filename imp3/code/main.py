@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 # import matplotlib.pyplot as plt
-import argparse
+# import argparse
 # import seaborn as sns
-import csv
+# import csv
 
 
 def load_data(file_name, has_label=True):
