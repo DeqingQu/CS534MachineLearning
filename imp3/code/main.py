@@ -6,43 +6,41 @@ import pandas as pd
 # import csv
 
 
-def load_data(file_name, has_label=True):
+def load_data(filename):
+    data = np.genfromtxt(filename, dtype=np.str, delimiter=",")
+    data = data.astype(float)
+    # extract labels from data
+    label = data[:, :1]
+    # changes label 3 to 1, 5 to -1
+    for i in label:
+        if i[0] == 3:
+            i[0] = 1
+        else:
+            i[0] = -1
+    return data
 
-    df = pd.read_csv(file_name, header=None)
-    y = None
-    if has_label:
-        y = df[[0]]
-        x = df.drop([0], axis=1)
 
-        #   if v == 3, y = 1.0; if v == 5, y = -1.0
-        def translate(v):
-            return 1.0 if v == 3 else -1.0
-        y = y.applymap(translate)
-
-        #   translate to np.array
-        x = np.array(x)
-        y = np.array(y)
-
-        #   insert bias
-        x = np.insert(x, 0, values=1.0, axis=1)
-
-        #   transfer label to array, not matrix
-        y = y.T[0]
-    else:
-        x = df
-        #   translate to np.array
-        x = np.array(x)
-
-        #   insert bias
-        x = np.insert(x, 0, values=1.0, axis=1)
-    return x, y
+def gini(data):
+    # counts = class_counts(data) #a list that counts the number of all the possible labels
+    # count3s = data[:, 0].count(1)
+    # count5s = data[:, 0].count(-1)
+    # counts = {1: count3s, -1: count5s}
+    # print(data.shape)
+    unique, count = np.unique(data, return_counts=True)
+    counts = dict(zip(unique, count))
+    # print(counts)
+    impurity = 1
+    for lbl in counts:
+        prob_of_lbl = counts[lbl] / float(len(data))
+        impurity -= prob_of_lbl**2
+    return impurity
 
 
 if __name__ == '__main__':
 
-    sample_train, label_train = load_data("pa3_train_reduced.csv")
-    sample_valid, label_valid = load_data("pa3_valid_reduced.csv")
-    print(sample_train[:2])
-    print(label_train[:2])
-    print(sample_valid[:2])
-    print(label_valid[:2])
+    data_train = load_data("pa3_train_reduced.csv")
+    data_valid = load_data("pa3_valid_reduced.csv")
+    print(data_train[:2])
+    print(data_valid[:2])
+
+    # print(gini)
