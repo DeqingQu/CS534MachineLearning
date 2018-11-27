@@ -4,6 +4,7 @@ import pandas as pd
 # import argparse
 # import seaborn as sns
 # import csv
+import datetime
 
 
 def load_data(filename):
@@ -20,27 +21,55 @@ def load_data(filename):
     return data
 
 
-def gini(data):
-    # counts = class_counts(data) #a list that counts the number of all the possible labels
-    # count3s = data[:, 0].count(1)
-    # count5s = data[:, 0].count(-1)
-    # counts = {1: count3s, -1: count5s}
-    # print(data.shape)
+def gini_index(data):
     unique, count = np.unique(data, return_counts=True)
     counts = dict(zip(unique, count))
-    # print(counts)
-    impurity = 1
-    for lbl in counts:
-        prob_of_lbl = counts[lbl] / float(len(data))
-        impurity -= prob_of_lbl**2
-    return impurity
+    uncertainty = 1
+    for label in counts:
+        prob_of_label = counts[label] / float(len(data))
+        uncertainty -= prob_of_label**2
+    return uncertainty
+
+
+def info_gain(left, right, current_uncertainty):
+    p = float(len(left)) / (len(left) + len(right))
+    return current_uncertainty - p * gini_index(left) - (1 - p) * gini_index(right)
+
+
+def split(data):
+    best_gain = 0
+    best_feature = -1
+    best_threshold = 0
+    current_uncertainty = gini_index(data[:, 0])
+    n_features = data.shape[1]
+    y_label = data[:, 0]
+    #   loop all features
+    # t = datetime.datetime.now()
+    for i in range(1, n_features):
+        feature_i = data[:, i]
+        pre_label = 0
+        #   loop all values in feature i
+        for j, val in enumerate(feature_i):
+            if pre_label == y_label[j]:
+                continue
+            pre_label = y_label[j]
+            left = y_label[feature_i <= val]
+            right = y_label[feature_i > val]
+            if len(left) == 0 or len(right) == 0:
+                continue
+            gain = info_gain(left, right, current_uncertainty)
+            if gain > best_gain:
+                best_gain = gain
+                best_feature = i
+                best_threshold = val
+    # print(datetime.datetime.now() - t)
+    return best_feature, best_threshold
+
 
 
 if __name__ == '__main__':
-
     data_train = load_data("pa3_train_reduced.csv")
     data_valid = load_data("pa3_valid_reduced.csv")
-    print(data_train[:2])
-    print(data_valid[:2])
-
-    # print(gini)
+    # print(data_train[:2])
+    # print(data_valid[:2])
+    print(split(data_train))
