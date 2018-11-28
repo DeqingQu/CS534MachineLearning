@@ -75,6 +75,16 @@ class DecisionNode(object):
         self.threshold = threshold
         self.true_child = None
         self.false_child = None
+        #   label of decision node
+        unique, count = np.unique(data, return_counts=True)
+        counts = dict(zip(unique, count))
+        max_label = None
+        max_count = 0
+        for label in counts:
+            if counts[label] > max_count:
+                max_label = label
+                max_count = counts[label]
+        self.label = max_label
 
 
 class DecisionLeaf(object):
@@ -111,40 +121,49 @@ def build_tree(data, height, max_depth=20):
     return node
 
 
-def classify(row, node):
+def classify(row, node, depth, max_depth=20):
     if node is None:
         return None
     if isinstance(node, DecisionLeaf):
         return node.label
+    if depth >= max_depth:
+        return node.label
     f_idx = node.feature_idx
     t = node.threshold
     if row[f_idx] >= t:
-        return classify(row, node.true_child)
+        return classify(row, node.true_child, depth+1, max_depth)
     else:
-        return classify(row, node.false_child)
+        return classify(row, node.false_child, depth+1, max_depth)
 
 
 #   accuracy of decision tree
-def validation(data, root):
+def validation(data, root, max_depth=20):
     error_count = 0
     for i in range(len(data)):
-        label = classify(data[i], root)
+        label = classify(data[i], root, 0, max_depth)
         if label != data[i][0]:
             error_count += 1
     return 1 - float(error_count / len(data))
 
 
-if __name__ == '__main__':
+def decision_tree():
     data_train = load_data("pa3_train_reduced.csv")
     data_valid = load_data("pa3_valid_reduced.csv")
     now = datetime.datetime.now()
     dt_root = build_tree(data_train, 0)
     print("build tree: ", datetime.datetime.now() - now)
     now = datetime.datetime.now()
-    print(validation(data_train, dt_root))
+    print("accuracy on train set")
+    for depth in range(1, 21):
+        print(validation(data_train, dt_root, depth))
     print("validation:", datetime.datetime.now() - now)
-    print(validation(data_valid, dt_root))
+    print("accuracy on validation set")
+    for depth in range(1, 21):
+        print(validation(data_valid, dt_root, depth))
     print("validation:", datetime.datetime.now() - now)
+
+if __name__ == '__main__':
+    decision_tree()
 
     # print(data_train[:4, :10])
     # print(classify(data_train[0, :20], root))
