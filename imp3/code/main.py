@@ -63,7 +63,47 @@ def split(data):
                 best_feature = i
                 best_threshold = val
     # print(datetime.datetime.now() - t)
-    return best_feature, best_threshold
+    return best_gain, best_feature, best_threshold
+
+
+class DecisionNode(object):
+    def __init__(self, data, feature_idx, threshold):
+        self.data = data
+        self.feature_idx = feature_idx
+        self.threshold = threshold
+        self.true_child = None
+        self.false_child = None
+
+
+class DecisionLeaf(object):
+    def __init__(self, data):
+        self.data = data
+        self.label = None
+
+
+def partition(data, feature_idx, threshold):
+    feature_i = data[:, feature_idx]
+    true_rows = data[feature_i >= threshold]
+    false_rows = data[feature_i < threshold]
+    return true_rows, false_rows
+
+
+def build_tree(data, height):
+    gain, f_idx, t = split(data)
+    if gain == 0 or height >= 20:
+        leaf = DecisionLeaf(data)
+        leaf.label = data[0][0]
+        return leaf
+    true_data, false_data = partition(data, f_idx, t)
+    print(true_data)
+    print(false_data)
+    node = DecisionNode(data, f_idx, t)
+    if len(true_data) > 0:
+        node.true_child = build_tree(true_data, height+1)
+    if len(false_data) > 0:
+        node.false_child = build_tree(false_data, height+1)
+    return node
+
 
 
 
@@ -72,4 +112,5 @@ if __name__ == '__main__':
     data_valid = load_data("pa3_valid_reduced.csv")
     # print(data_train[:2])
     # print(data_valid[:2])
-    print(split(data_train))
+    # print(split(data_train))
+    root = build_tree(data_train[:100, :10], 0)
