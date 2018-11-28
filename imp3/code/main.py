@@ -95,8 +95,6 @@ def build_tree(data, height):
         leaf.label = data[0][0]
         return leaf
     true_data, false_data = partition(data, f_idx, t)
-    print(true_data)
-    print(false_data)
     node = DecisionNode(data, f_idx, t)
     if len(true_data) > 0:
         node.true_child = build_tree(true_data, height+1)
@@ -105,6 +103,27 @@ def build_tree(data, height):
     return node
 
 
+def classify(row, node):
+    if node is None:
+        return None
+    if isinstance(node, DecisionLeaf):
+        return node.label
+    f_idx = node.feature_idx
+    t = node.threshold
+    if row[f_idx] >= t:
+        return classify(row, node.true_child)
+    else:
+        return classify(row, node.false_child)
+
+
+#   accuracy of decision tree
+def validation(data, root):
+    error_count = 0
+    for i in range(len(data)):
+        label = classify(data[i], root)
+        if label != data[i][0]:
+            error_count += 1
+    return 1 - float(error_count / len(data))
 
 
 if __name__ == '__main__':
@@ -113,4 +132,17 @@ if __name__ == '__main__':
     # print(data_train[:2])
     # print(data_valid[:2])
     # print(split(data_train))
-    root = build_tree(data_train[:100, :10], 0)
+    t = datetime.datetime.now()
+    dt_root = build_tree(data_train, 0)
+    print("build tree: ", datetime.datetime.now() - t)
+    t = datetime.datetime.now()
+    print(validation(data_train, dt_root))
+    print("validation:", datetime.datetime.now() - t)
+    print(validation(data_valid, dt_root))
+    print("validation:", datetime.datetime.now() - t)
+
+    # print(data_train[:4, :10])
+    # print(classify(data_train[0, :20], root))
+    # print(classify(data_train[1, :20], root))
+    # print(classify(data_train[2, :20], root))
+    # print(classify(data_train[3, :20], root))
