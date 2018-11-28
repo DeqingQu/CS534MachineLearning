@@ -43,7 +43,6 @@ def split(data):
     current_uncertainty = gini_index(data[:, 0])
     n_features = data.shape[1]
     #   loop all features
-    # t = datetime.datetime.now()
     for i in range(1, n_features):
         data = data[data[:, i].argsort()]
         y_label = data[:, 0]
@@ -64,7 +63,6 @@ def split(data):
                 best_gain = gain
                 best_feature = i
                 best_threshold = val
-    # print(datetime.datetime.now() - t)
     return best_gain, best_feature, best_threshold
 
 
@@ -151,16 +149,17 @@ def decision_tree():
     data_valid = load_data("pa3_valid_reduced.csv")
     now = datetime.datetime.now()
     dt_root = build_tree(data_train, 0)
-    print("build tree: ", datetime.datetime.now() - now)
+    print("time to build a tree: ", datetime.datetime.now() - now)
     now = datetime.datetime.now()
-    print("accuracy on train set")
+    print("accuracy on the train set:")
     for depth in range(1, 21):
-        print(validation(data_train, dt_root, depth))
-    print("validation:", datetime.datetime.now() - now)
-    print("accuracy on validation set")
+        print("depth %d, accuracy %f" % (depth, validation(data_train, dt_root, depth)))
+    print("time to validate on the train set: ", datetime.datetime.now() - now)
+    print("accuracy on the validation set:")
     for depth in range(1, 21):
-        print(validation(data_valid, dt_root, depth))
-    print("validation:", datetime.datetime.now() - now)
+        print("depth %d, accuracy %f" % (depth, validation(data_valid, dt_root, depth)))
+    print("time to validate on the valid set:", datetime.datetime.now() - now)
+
 
 if __name__ == '__main__':
     decision_tree()
