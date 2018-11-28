@@ -42,11 +42,13 @@ def split(data):
     best_threshold = 0
     current_uncertainty = gini_index(data[:, 0])
     n_features = data.shape[1]
-    y_label = data[:, 0]
     #   loop all features
     # t = datetime.datetime.now()
     for i in range(1, n_features):
+        data = data[data[:, i].argsort()]
+        y_label = data[:, 0]
         feature_i = data[:, i]
+
         pre_label = 0
         #   loop all values in feature i
         for j, val in enumerate(feature_i):
@@ -77,8 +79,15 @@ class DecisionNode(object):
 
 class DecisionLeaf(object):
     def __init__(self, data):
-        self.data = data
-        self.label = None
+        unique, count = np.unique(data, return_counts=True)
+        counts = dict(zip(unique, count))
+        max_label = None
+        max_count = 0
+        for label in counts:
+            if counts[label] > max_count:
+                max_label = label
+                max_count = counts[label]
+        self.label = max_label
 
 
 def partition(data, feature_idx, threshold):
@@ -88,11 +97,10 @@ def partition(data, feature_idx, threshold):
     return true_rows, false_rows
 
 
-def build_tree(data, height):
+def build_tree(data, height, max_depth=20):
     gain, f_idx, t = split(data)
-    if gain == 0 or height >= 20:
+    if gain == 0 or height >= max_depth:
         leaf = DecisionLeaf(data)
-        leaf.label = data[0][0]
         return leaf
     true_data, false_data = partition(data, f_idx, t)
     node = DecisionNode(data, f_idx, t)
@@ -129,17 +137,14 @@ def validation(data, root):
 if __name__ == '__main__':
     data_train = load_data("pa3_train_reduced.csv")
     data_valid = load_data("pa3_valid_reduced.csv")
-    # print(data_train[:2])
-    # print(data_valid[:2])
-    # print(split(data_train))
-    t = datetime.datetime.now()
+    now = datetime.datetime.now()
     dt_root = build_tree(data_train, 0)
-    print("build tree: ", datetime.datetime.now() - t)
-    t = datetime.datetime.now()
+    print("build tree: ", datetime.datetime.now() - now)
+    now = datetime.datetime.now()
     print(validation(data_train, dt_root))
-    print("validation:", datetime.datetime.now() - t)
+    print("validation:", datetime.datetime.now() - now)
     print(validation(data_valid, dt_root))
-    print("validation:", datetime.datetime.now() - t)
+    print("validation:", datetime.datetime.now() - now)
 
     # print(data_train[:4, :10])
     # print(classify(data_train[0, :20], root))
