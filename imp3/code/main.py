@@ -59,10 +59,13 @@ def split(data):
             if len(left) == 0 or len(right) == 0:
                 continue
             gain = info_gain(left, right, current_uncertainty)
-            if gain > best_gain:
+            if gain >= best_gain:
                 best_gain = gain
                 best_feature = i
                 best_threshold = val
+    print('f - ', best_feature, ', t - ', best_threshold)
+    if best_feature == -1:
+        print("f = -1, gain = ", best_gain)
     return best_gain, best_feature, best_threshold
 
 
@@ -99,9 +102,11 @@ class DecisionLeaf(object):
 
 
 def partition(data, feature_idx, threshold):
+    if feature_idx == -1:
+        
     feature_i = data[:, feature_idx]
-    true_rows = data[feature_i >= threshold]
-    false_rows = data[feature_i < threshold]
+    true_rows = data[feature_i <= threshold]
+    false_rows = data[feature_i > threshold]
     return true_rows, false_rows
 
 
@@ -128,7 +133,7 @@ def classify(row, node, depth, max_depth=20):
         return node.label
     f_idx = node.feature_idx
     t = node.threshold
-    if row[f_idx] >= t:
+    if row[f_idx] <= t:
         return classify(row, node.true_child, depth+1, max_depth)
     else:
         return classify(row, node.false_child, depth+1, max_depth)
@@ -145,7 +150,7 @@ def validation(data, root, max_depth=20):
 
 
 def decision_tree():
-    data_train = load_data("pa3_train_reduced.csv")
+    data_train = load_data("pa3_train_reduced.csv")#[:, :40]
     data_valid = load_data("pa3_valid_reduced.csv")
     now = datetime.datetime.now()
     dt_root = build_tree(data_train, 0)
