@@ -1,9 +1,15 @@
-
+"""
+Deqing Qu
+"""
 
 from __future__ import division
 from __future__ import print_function
 import sys
-import cPickle
+try:
+   import _pickle as pickle
+except:
+   import pickle
+
 import numpy as np
 
 import random
@@ -225,13 +231,15 @@ def Main(train_x,train_y,
 if __name__ == '__main__':
 
     t0 = t000 = float(time.clock())
-    data = cPickle.load(open('cifar_2class_py2.p', 'rb'))
-    t1 = float(time.clock())
+    if sys.version_info[0] < 3:
+        data = pickle.load(open('cifar_2class_py2.p', 'rb'))
+	else:
+	    data = pickle.load(open('cifar_2class_py2.p', 'rb'), encoding='bytes')    t1 = float(time.clock())
     print ('Loading time is %.4f s. \n' % (t1-t0))
 
     train_x = normalize(data['train_data'])
-    test_x = normalize(data['test_data'])
     train_y = data['train_labels']
+    test_x = normalize(data['test_data'])
     test_y = data['test_labels']    
 
     num_epochs = 40
